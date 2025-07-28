@@ -26,7 +26,8 @@ def hello_world():
         'status': 'running',
         'deployment': 'v1.0.2 - New Feature Added! 🚀',
         'current_version_message': f'CURRENT VERSION IS: {APP_VERSION}',
-        'auto_versioning': 'enabled'
+        'auto_versioning': 'enabled',
+        'test_commit': 'testing auto versioning'
     }
 
 @app.route('/health')
