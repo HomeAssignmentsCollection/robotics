@@ -1,0 +1,315 @@
+name: Advanced CI/CD Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      demo_type:
+        description: 'Demo Type'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - security-only
+          - deployment-only
+          - signing-only
+      environment:
+        description: 'Target Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+          - canary
+      deployment_strategy:
+        description: 'Deployment Strategy'
+        required: true
+        default: 'rolling'
+        type: choice
+        options:
+          - rolling
+          - blue-green
+          - canary
+
+env:
+  AWS_REGION: eu-north-1
+  ECR_REPOSITORY: devops-cicd-demo
+
+jobs:
+  demo-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      demo-type: ${{ github.event.inputs.demo_type }}
+      environment: ${{ github.event.inputs.environment }}
+      strategy: ${{ github.event.inputs.deployment_strategy }}
+    
+    steps:
+      - name: Demo Configuration
+        run: |
+          echo "🎮 Advanced CI/CD Demo Configuration"
+          echo "=================================="
+          echo "Demo Type: ${{ github.event.inputs.demo_type }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Strategy: ${{ github.event.inputs.deployment_strategy }}"
+          echo ""
+
+  version-simulation:
+    runs-on: ubuntu-latest
+    needs: demo-setup
+    if: needs.demo-setup.outputs.demo-type == 'full' || needs.demo-setup.outputs.demo-type == 'signing-only'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Simulate Version Management
+        run: |
+          echo "🔢 STEP: Simulate Version Management"
+          echo "   📋 Current version: 1.0.2"
+          echo "   🔄 Bumping patch version..."
+          echo "   📈 New version: 1.0.3"
+          echo "   🏷️ Creating git tag: v1.0.3"
+          echo "   📝 Commit message: chore: bump version to 1.0.3"
+          echo "   ✅ Version management completed"
+          
+          # Simulate version variables
+          echo "VERSION=1.0.3" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "GIT_COMMIT=abc123def456" >> $GITHUB_ENV
+
+  security-scanning:
+    runs-on: ubuntu-latest
+    needs: demo-setup
+    if: needs.demo-setup.outputs.demo-type == 'full' || needs.demo-setup.outputs.demo-type == 'security-only'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install security tools
+        run: |
+          pip install bandit safety trivy
+      
+      - name: Simulate Security Scanning
+        run: |
+          echo "🛡️ STEP: Security Scanning Simulation"
+          echo "   🔍 Scanning Python code with Bandit..."
+          echo "   📊 Results: 0 high severity issues found"
+          echo "   🔍 Scanning dependencies with Safety..."
+          echo "   📊 Results: 0 vulnerable dependencies found"
+          echo "   🔍 Scanning Docker image with Trivy..."
+          echo "   📊 Results: 0 critical vulnerabilities found"
+          echo "   ✅ Security scan completed successfully"
+          
+          # Simulate security report
+          echo "📋 Security Report:"
+          echo "  - Code Quality: ✅ PASS"
+          echo "  - Dependencies: ✅ PASS"
+          echo "  - Container Security: ✅ PASS"
+          echo "  - Overall Score: 98/100"
+
+  docker-signing:
+    runs-on: ubuntu-latest
+    needs: [demo-setup, version-simulation]
+    if: needs.demo-setup.outputs.demo-type == 'full' || needs.demo-setup.outputs.demo-type == 'signing-only'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Simulate Docker Image Signing
+        env:
+          VERSION: ${{ needs.version-simulation.outputs.VERSION || '1.0.3' }}
+        run: |
+          echo "🔐 STEP: Docker Image Signing Simulation"
+          echo "   🔑 Generating signing key..."
+          echo "   📝 Creating signature..."
+          echo "   🏷️ Image: devops-cicd-demo:$VERSION"
+          echo "   🔍 Signature: sha256:$(echo "devops-cicd-demo:$VERSION" | sha256sum | cut -d' ' -f1)"
+          echo "   📋 Certificate: CN=Demo Signing Authority, O=DevOps Demo, C=US"
+          echo "   📅 Valid Until: $(date -d '+1 year' -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "   ✅ Image signed successfully"
+          
+          # Generate signing metadata
+          SIGNATURE=$(echo "devops-cicd-demo:$VERSION" | sha256sum | cut -d' ' -f1)
+          CERTIFICATE="CN=Demo Signing Authority, O=DevOps Demo, C=US"
+          VALID_UNTIL=$(date -d '+1 year' -u +'%Y-%m-%dT%H:%M:%SZ')
+          
+          echo "📋 Signing Certificate:"
+          echo "  Subject: $CERTIFICATE"
+          echo "  Issuer: $CERTIFICATE"
+          echo "  Valid From: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "  Valid Until: $VALID_UNTIL"
+          echo "  Signature Algorithm: SHA256"
+          echo "  Key Size: 2048 bits"
+
+  build-simulation:
+    runs-on: ubuntu-latest
+    needs: [demo-setup, version-simulation, security-scanning]
+    if: needs.demo-setup.outputs.demo-type == 'full' || needs.demo-setup.outputs.demo-type == 'deployment-only'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Simulate Docker Build
+        env:
+          VERSION: ${{ needs.version-simulation.outputs.VERSION || '1.0.3' }}
+          BUILD_DATE: ${{ needs.version-simulation.outputs.BUILD_DATE || '2024-01-01T12:00:00Z' }}
+          GIT_COMMIT: ${{ needs.version-simulation.outputs.GIT_COMMIT || 'abc123def456' }}
+        run: |
+          echo "🔨 STEP: Docker Build Simulation"
+          echo "   📦 Building multi-stage Docker image..."
+          echo "   🏗️ Stage 1: Building dependencies..."
+          echo "   🏗️ Stage 2: Creating production image..."
+          echo "   🏷️ Tagging: devops-cicd-demo:$VERSION"
+          echo "   📊 Image size: 156.7 MB"
+          echo "   ⏱️ Build time: 2m 15s"
+          echo "   ✅ Build completed successfully"
+          
+          echo "📋 Build Information:"
+          echo "  Version: $VERSION"
+          echo "  Build Date: $BUILD_DATE"
+          echo "  Git Commit: $GIT_COMMIT"
+          echo "  Base Image: python:3.11-slim"
+          echo "  Layers: 12"
+          echo "  Final Size: 156.7 MB"
+
+  deployment-simulation:
+    runs-on: ubuntu-latest
+    needs: [demo-setup, build-simulation]
+    if: needs.demo-setup.outputs.demo-type == 'full' || needs.demo-setup.outputs.demo-type == 'deployment-only'
+    
+    steps:
+      - name: Simulate Deployment
+        env:
+          ENVIRONMENT: ${{ needs.demo-setup.outputs.environment }}
+          STRATEGY: ${{ needs.demo-setup.outputs.strategy }}
+          VERSION: ${{ needs.version-simulation.outputs.VERSION || '1.0.3' }}
+        run: |
+          echo "🚀 STEP: Deployment Simulation"
+          echo "   🌍 Environment: $ENVIRONMENT"
+          echo "   📋 Strategy: $STRATEGY"
+          echo "   🏷️ Version: $VERSION"
+          
+          if [ "$STRATEGY" = "rolling" ]; then
+            echo "   🔄 Rolling Deployment:"
+            echo "     - Deploying to 25% of instances"
+            echo "     - Health check passed"
+            echo "     - Deploying to 50% of instances"
+            echo "     - Health check passed"
+            echo "     - Deploying to 75% of instances"
+            echo "     - Health check passed"
+            echo "     - Deploying to 100% of instances"
+            echo "     - Health check passed"
+          elif [ "$STRATEGY" = "blue-green" ]; then
+            echo "   🔵🟢 Blue-Green Deployment:"
+            echo "     - Deploying to green environment"
+            echo "     - Running smoke tests"
+            echo "     - All tests passed"
+            echo "     - Switching traffic to green"
+            echo "     - Monitoring for 5 minutes"
+            echo "     - Deployment successful"
+          elif [ "$STRATEGY" = "canary" ]; then
+            echo "   🐦 Canary Deployment:"
+            echo "     - Deploying to 10% of traffic"
+            echo "     - Monitoring metrics for 10 minutes"
+            echo "     - Error rate: 0.1% (acceptable)"
+            echo "     - Deploying to 25% of traffic"
+            echo "     - Monitoring metrics for 5 minutes"
+            echo "     - Error rate: 0.05% (excellent)"
+            echo "     - Deploying to 100% of traffic"
+          fi
+          
+          echo "   ✅ Deployment completed successfully"
+
+  quality-metrics:
+    runs-on: ubuntu-latest
+    needs: [demo-setup, security-scanning, build-simulation, deployment-simulation]
+    if: needs.demo-setup.outputs.demo-type == 'full'
+    
+    steps:
+      - name: Calculate Quality Metrics
+        run: |
+          echo "📊 STEP: Quality Metrics Calculation"
+          echo "   🧪 Test Coverage: 87%"
+          echo "   🛡️ Security Score: 98/100"
+          echo "   🔍 Code Quality: 95/100"
+          echo "   🏗️ Build Time: 2m 15s"
+          echo "   🚀 Deploy Time: 1m 30s"
+          echo "   📦 Image Size: 156.7 MB"
+          echo "   ✅ Overall Quality Score: 94/100"
+          
+          echo "📈 Performance Metrics:"
+          echo "  - Response Time: 45ms"
+          echo "  - Throughput: 1000 req/s"
+          echo "  - Error Rate: 0.01%"
+          echo "  - Availability: 99.9%"
+
+  demo-summary:
+    runs-on: ubuntu-latest
+    needs: [demo-setup, quality-metrics]
+    if: always()
+    
+    steps:
+      - name: Demo Summary
+        env:
+          DEMO_TYPE: ${{ needs.demo-setup.outputs.demo-type }}
+          ENVIRONMENT: ${{ needs.demo-setup.outputs.environment }}
+          STRATEGY: ${{ needs.demo-setup.outputs.strategy }}
+        run: |
+          echo "🎉 Advanced CI/CD Demo Summary"
+          echo "=============================="
+          echo "Demo Type: $DEMO_TYPE"
+          echo "Environment: $ENVIRONMENT"
+          echo "Strategy: $STRATEGY"
+          echo ""
+          echo "✅ Completed Steps:"
+          
+          if [ "$DEMO_TYPE" = "full" ] || [ "$DEMO_TYPE" = "signing-only" ]; then
+            echo "  ✅ Version Management"
+          fi
+          
+          if [ "$DEMO_TYPE" = "full" ] || [ "$DEMO_TYPE" = "security-only" ]; then
+            echo "  ✅ Security Scanning"
+          fi
+          
+          if [ "$DEMO_TYPE" = "full" ] || [ "$DEMO_TYPE" = "signing-only" ]; then
+            echo "  ✅ Docker Image Signing"
+          fi
+          
+          if [ "$DEMO_TYPE" = "full" ] || [ "$DEMO_TYPE" = "deployment-only" ]; then
+            echo "  ✅ Docker Build"
+            echo "  ✅ Deployment ($STRATEGY strategy)"
+          fi
+          
+          if [ "$DEMO_TYPE" = "full" ]; then
+            echo "  ✅ Quality Metrics"
+          fi
+          
+          echo ""
+          echo "🔐 Security Features Demonstrated:"
+          echo "  - Docker image signing (simulated)"
+          echo "  - Security vulnerability scanning"
+          echo "  - Code quality analysis"
+          echo "  - Dependency vulnerability checking"
+          
+          echo ""
+          echo "🚀 Deployment Features Demonstrated:"
+          echo "  - Multi-stage Docker builds"
+          echo "  - Version-based tagging"
+          echo "  - Multiple deployment strategies"
+          echo "  - Health check monitoring"
+          
+          echo ""
+          echo "📊 Quality Features Demonstrated:"
+          echo "  - Automated testing"
+          echo "  - Code coverage reporting"
+          echo "  - Performance monitoring"
+          echo "  - Quality gates enforcement" 

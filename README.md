@@ -152,7 +152,41 @@ git commit -m "feat(app): update hello world message"
 git push origin main
 ```
 
-## 🔢 Versioning Strategy
+## 📚 Documentation
+
+### 🚀 Getting Started
+- **[QUICK_START.md](docs/QUICK_START.md)**: Detailed quick start guide
+- **[SETUP.md](docs/SETUP.md)**: Complete setup instructions
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**: Common issues and solutions
+
+### 🏗️ AWS Resources
+- **[AWS_RESOURCES.md](AWS_RESOURCES.md)**: AWS services overview and justification
+- **[AWS_COMPONENTS_ANALYSIS.md](AWS_COMPONENTS_ANALYSIS.md)**: Detailed analysis of AWS components and their roles
+- **[ALTERNATIVE_ARCHITECTURES.md](ALTERNATIVE_ARCHITECTURES.md)**: Alternative architectural solutions and comparisons
+
+### 🏗️ Architecture & Design
+- **[ARCHITECTURE_OVERVIEW.md](docs/ARCHITECTURE_OVERVIEW.md)**: System architecture overview
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Detailed architecture documentation
+- **[ARCHITECTURE_DIAGRAM.md](docs/ARCHITECTURE_DIAGRAM.md)**: Architecture diagrams
+- **[AWS_COMPONENTS_INVENTORY.md](docs/AWS_COMPONENTS_INVENTORY.md)**: Complete AWS resources inventory
+
+### 🔧 Development & Operations
+- **[VERSIONING_GUIDE.md](docs/VERSIONING_GUIDE.md)**: Version management guide
+- **[DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md)**: Docker best practices and usage
+- **[FEATURES.md](docs/FEATURES.md)**: Comprehensive feature documentation
+- **[SECRET_MANAGEMENT.md](docs/SECRET_MANAGEMENT.md)**: Secret management best practices
+- **[SECRET_MANAGEMENT_EXAMPLES.md](docs/SECRET_MANAGEMENT_EXAMPLES.md)**: Practical secret management examples
+- **[CODE_REVIEW_REPORT.md](CODE_REVIEW_REPORT.md)**: Comprehensive code review and recommendations
+
+### 🎮 Educational & Demo
+- **[DEMO_CONCEPTS.md](docs/DEMO_CONCEPTS.md)**: Demo concepts documentation
+- **[code-quality/README.md](code-quality/README.md)**: Code quality module
+
+### 📊 Monitoring & Optimization
+- **[OPTIMIZATION.md](docs/OPTIMIZATION.md)**: Performance optimization strategies
+- **[AUTO_VERSIONING.md](docs/AUTO_VERSIONING.md)**: Automatic versioning documentation
+
+## 🔄 Versioning Strategy
 
 Our project implements a comprehensive semantic versioning strategy with automated management:
 
@@ -167,13 +201,7 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 - `1.1.0` - New feature
 - `2.0.0` - Breaking change
 
-### 🏗️ Version Storage
-- **Primary Source**: Git tags (`v1.0.0`)
-- **Version File**: `VERSION` file for easy access
-- **Environment Variables**: Passed to application and Docker
-- **Application Integration**: Available via `/info` endpoint
-
-### 🔄 Version Management Workflow
+### 🏗️ Version Management Workflow
 ```bash
 # Development
 git checkout -b feature/new-feature
@@ -193,71 +221,7 @@ git merge feature/new-feature
 ./scripts/version.sh release
 ```
 
-### 🐳 Docker Image Tagging
-```bash
-# Version-based tags
-devops-cicd-demo:1.0.0          # Specific version
-devops-cicd-demo:latest          # Latest stable
-devops-cicd-demo:main            # Latest from main branch
-
-# ECR tagging
-aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
-docker tag devops-cicd-demo:$VERSION $ECR_REGISTRY/devops-cicd-demo:$VERSION
-docker push $ECR_REGISTRY/devops-cicd-demo:$VERSION
-```
-
-### 📊 Version Script Commands
-```bash
-# Get current version
-./scripts/version.sh get
-
-# Bump version
-./scripts/version.sh bump patch  # 1.0.0 -> 1.0.1
-./scripts/version.sh bump minor  # 1.0.1 -> 1.1.0
-./scripts/version.sh bump major  # 1.1.0 -> 2.0.0
-
-# Create release
-./scripts/version.sh release
-
-# Show version info
-./scripts/version.sh info
-
-# Validate version format
-./scripts/version.sh validate
-```
-
-### 🔄 CI/CD Integration
-```yaml
-# GitHub Actions workflow
-- name: Get version information
-  run: |
-    VERSION=$(./scripts/version.sh get)
-    echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-- name: Build Docker image
-  run: |
-    docker build -f docker/Dockerfile \
-      --build-arg APP_VERSION=$VERSION \
-      --build-arg BUILD_DATE=$BUILD_DATE \
-      --build-arg VCS_REF=$GIT_COMMIT \
-      -t devops-cicd-demo:$VERSION .
-```
-
-### 📈 Version Tracking
-```python
-# Application endpoints
-@app.route('/info')
-def app_info():
-    return jsonify({
-        'name': 'devops-cicd-demo',
-        'version': VERSION,
-        'build_date': BUILD_DATE,
-        'git_commit': os.getenv('GIT_COMMIT', 'unknown'),
-        'environment': os.getenv('ENVIRONMENT', 'development')
-    })
-```
-
-See [docs/VERSIONING_STRATEGY.md](docs/VERSIONING_STRATEGY.md) for detailed documentation.
+See [docs/VERSIONING_GUIDE.md](docs/VERSIONING_GUIDE.md) for detailed documentation.
 
 ## 🐳 Docker Best Practices
 
@@ -272,57 +236,7 @@ Our Dockerfile implements comprehensive best practices for secure and efficient 
 - **Production Configuration**: Optimized Gunicorn settings
 - **Version Support**: Build arguments for versioning
 
-### 🔐 Security Features
-```dockerfile
-# Non-root user execution
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-USER appuser
-
-# Proper file ownership
-COPY --chown=appuser:appuser src/ ./src/
-
-# Minimal attack surface
-RUN apt-get update && apt-get install -y \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-```
-
-### 📊 Performance Optimization
-```dockerfile
-# Multi-stage build
-FROM python:3.11-slim as builder
-# ... build dependencies ...
-
-FROM python:3.11-slim
-# ... production image ...
-
-# Layer optimization
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-```
-
-### 🧪 Health Monitoring
-```dockerfile
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
-```
-
-### 🚀 Production Configuration
-```dockerfile
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:5000", \
-     "--workers", "2", \
-     "--timeout", "120", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "100", \
-     "--keep-alive", "2", \
-     "--log-level", "info", \
-     "src.hello_world:app"]
-```
-
-See [docs/DOCKER_BEST_PRACTICES.md](docs/DOCKER_BEST_PRACTICES.md) for detailed documentation.
+See [docs/DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) for detailed documentation.
 
 ## 🔧 Code Quality Module
 
@@ -351,13 +265,6 @@ bash code-quality/scripts/run-quality-checks.sh
 python code-quality/scripts/calculate-quality-index.py
 ```
 
-### Quality Gates
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| **Test Coverage** | ≥ 80% | Block merge if below |
-| **Security Issues** | 0 High/Critical | Block merge if found |
-| **Linting Errors** | 0 | Block merge if found |
-
 See [code-quality/README.md](code-quality/README.md) for detailed documentation.
 
 ## 🎮 Demo Concepts
@@ -376,31 +283,6 @@ The project includes demo concept pipelines for educational purposes:
 - **Triggers**: Push, PR, Manual with environment and strategy selection
 - **Environments**: staging, production, canary
 - **Strategies**: rolling, blue-green, canary
-
-### 🔐 Docker Image Signing Simulation
-```bash
-🔐 STEP: Simulate Docker Image Signing
-   🔑 Generating signing key...
-   📝 Creating signature...
-   🏷️ Image: devops-cicd-demo:latest
-   🔍 Signature: sha256:abc123def456...
-   📋 Certificate: CN=Demo Signing Authority
-   ✅ Image signed successfully
-```
-
-### 🚀 Deployment Strategies
-- **Rolling Update**: Zero-downtime deployment
-- **Blue-Green**: Traffic switching deployment
-- **Canary**: Gradual rollout strategy
-
-### 📊 Quality Metrics
-```bash
-📈 Quality Score: 95/100
-🛡️ Security Score: 98/100
-🧪 Test Coverage: 87%
-🏗️ Build Time: 2m 15s
-🚀 Deploy Time: 1m 30s
-```
 
 See [docs/DEMO_CONCEPTS.md](docs/DEMO_CONCEPTS.md) for detailed documentation.
 
@@ -423,123 +305,7 @@ See [docs/DEMO_CONCEPTS.md](docs/DEMO_CONCEPTS.md) for detailed documentation.
 6. **Deployment**: Deploy to ECS via ECR
 7. **Monitoring**: CloudWatch dashboards and alarms
 
-## 🏗️ System Architecture
-
-Our DevOps CI/CD pipeline is built on AWS cloud services with GitHub Actions as the CI/CD engine:
-
-### 🎯 AWS Services Architecture
-
-#### 1. **Amazon ECR (Elastic Container Registry)**
-**Purpose**: Container image registry and storage
-**Why ECR**: 
-- **Security**: Integrated with AWS IAM for access control
-- **Performance**: High-speed image pulls within AWS network
-- **Integration**: Seamless integration with ECS and other AWS services
-- **Cost-effective**: Pay only for storage and data transfer
-
-#### 2. **Amazon ECS (Elastic Container Service) with Fargate**
-**Purpose**: Container orchestration and runtime environment
-**Why ECS Fargate**:
-- **Serverless**: No server management required
-- **Scalability**: Automatic scaling based on demand
-- **Cost-effective**: Pay only for resources used
-- **Security**: Isolated compute environment
-- **Integration**: Native AWS service integration
-
-#### 3. **Application Load Balancer (ALB)**
-**Purpose**: Traffic distribution and health monitoring
-**Why ALB**:
-- **High Availability**: Multi-AZ deployment
-- **Health Checks**: Automatic unhealthy instance removal
-- **SSL Termination**: Built-in SSL/TLS support
-- **Path-based Routing**: Advanced routing capabilities
-- **Integration**: Native ECS integration
-
-#### 4. **Amazon VPC (Virtual Private Cloud)**
-**Purpose**: Network isolation and security
-**Why VPC**:
-- **Security**: Network-level isolation
-- **Control**: Complete network control
-- **Compliance**: Meet security requirements
-- **Integration**: Native AWS service integration
-- **Scalability**: Support for large deployments
-
-#### 5. **Amazon CloudWatch**
-**Purpose**: Monitoring, logging, and observability
-**Why CloudWatch**:
-- **Comprehensive**: Metrics, logs, and alarms
-- **Integration**: Native AWS service integration
-- **Real-time**: Real-time monitoring and alerting
-- **Cost-effective**: Basic monitoring included
-- **Automation**: Automated responses to events
-
-#### 6. **Amazon IAM (Identity and Access Management)**
-**Purpose**: Security and access control
-**Why IAM**:
-- **Security**: Fine-grained access control
-- **Compliance**: Meet security requirements
-- **Integration**: Native AWS service integration
-- **Audit**: Comprehensive access logging
-- **Automation**: Programmatic access management
-
-### 🔄 CI/CD Pipeline Architecture
-
-#### GitHub Actions Workflow
-**Purpose**: Automated CI/CD orchestration
-**Why GitHub Actions**:
-- **Integration**: Native GitHub integration
-- **Flexibility**: Customizable workflows
-- **Security**: Secure secrets management
-- **Cost-effective**: Free for public repositories
-- **Community**: Large ecosystem of actions
-
-#### Pipeline Stages:
-1. **Version Management**: Automated version detection
-2. **Testing**: Unit and integration tests
-3. **Quality Checks**: Code quality validation
-4. **Building**: Docker image creation
-5. **Security Scanning**: Vulnerability detection
-6. **Deployment**: AWS service updates
-7. **Monitoring**: Health check verification
-
-### 🏗️ Infrastructure as Code (Terraform)
-
-#### Terraform Modules
-**Purpose**: Reusable infrastructure components
-**Why Terraform**:
-- **Declarative**: Infrastructure as code
-- **Version Control**: Track infrastructure changes
-- **Reusability**: Modular architecture
-- **State Management**: Track resource state
-- **Multi-cloud**: Support for multiple providers
-
-### 🔐 Security Architecture
-
-#### Security Layers:
-1. **Network Security**: VPC, Security Groups, NACLs
-2. **Application Security**: IAM roles, policies
-3. **Container Security**: Non-root user, minimal base image
-4. **Data Security**: Encryption at rest and in transit
-5. **Access Security**: Multi-factor authentication
-
-### 📊 Monitoring and Observability
-
-#### Monitoring Stack:
-1. **CloudWatch Metrics**: Application and infrastructure metrics
-2. **CloudWatch Logs**: Centralized logging
-3. **CloudWatch Alarms**: Automated alerting
-4. **Application Health Checks**: Endpoint monitoring
-5. **Custom Dashboards**: Operational visibility
-
-### 🚀 Deployment Strategy
-
-#### Deployment Types:
-1. **Blue-Green Deployment**: Zero-downtime deployments
-2. **Rolling Deployment**: Gradual rollout
-3. **Canary Deployment**: Risk mitigation
-4. **Immutable Deployment**: Version-based deployments
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ARCHITECTURE_DIAGRAM.md](docs/ARCHITECTURE_DIAGRAM.md) for detailed architecture documentation.
+See [docs/ARCHITECTURE_OVERVIEW.md](docs/ARCHITECTURE_OVERVIEW.md) for detailed architecture documentation.
 
 ## 📊 Features
 
@@ -555,71 +321,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ARCHITECTURE_DIAGRAM.
 - ✅ **Demo Concepts**: Educational pipeline demonstrations
 - ✅ **Docker Best Practices**: Secure and optimized containerization
 
-### Versioning Features
-- ✅ **Semantic Versioning**: Major.Minor.Patch format
-- ✅ **Automated Management**: Version script with Git integration
-- ✅ **Docker Tagging**: Version-based image tagging
-- ✅ **CI/CD Integration**: Automated version detection
-- ✅ **Build Metadata**: Timestamps and commit hashes
-- ✅ **Release Automation**: Git tags and GitHub releases
-
-### Quality Features
-- ✅ **Pre-commit Hooks**: Local quality enforcement
-- ✅ **Quality Gates**: CI/CD integration
-- ✅ **Security Scanning**: Automated vulnerability detection
-- ✅ **Coverage Reporting**: Test coverage metrics
-- ✅ **PR Comments**: Automatic quality reports
-
-### Demo Features
-- ✅ **Simulated Signing**: Docker image signing concepts
-- ✅ **Multiple Strategies**: Different deployment approaches
-- ✅ **Educational**: Step-by-step pipeline demonstration
-- ✅ **Manual Triggers**: Customizable demo scenarios
-
-### Docker Features
-- ✅ **Multi-stage Build**: Optimized image size
-- ✅ **Security First**: Non-root user, minimal attack surface
-- ✅ **Health Monitoring**: Application health checks
-- ✅ **Production Ready**: Optimized Gunicorn configuration
-- ✅ **Layer Optimization**: Efficient caching strategy
-- ✅ **Version Support**: Build arguments and labels
-
-## 📈 Monitoring
-
-### CloudWatch Dashboards
-- ECS Service Metrics
-- ALB Performance Metrics
-- Application Health Metrics
-- Error Rate Monitoring
-- Version Deployment Tracking
-
-### Alerts
-- High CPU/Memory Usage
-- Error Rate Thresholds
-- Health Check Failures
-- Security Vulnerability Alerts
-- Version Deployment Status
-
-## 🔒 Security
-
-### Security Features
-- **IAM Roles**: Least privilege access
-- **Security Groups**: Network-level security
-- **Vulnerability Scanning**: Bandit, Safety, Trivy
-- **Container Security**: Non-root user, minimal base image
-- **HTTPS**: ALB with SSL termination
-- **Image Signing**: Simulated signing for educational purposes
-- **Docker Security**: Multi-stage builds, minimal attack surface
-- **Version Security**: Signed Git tags and releases
-
-## 💰 Cost Optimization
-
-### Cost-Saving Strategies
-- **Fargate Spot**: Use spot instances for non-critical workloads
-- **Auto Scaling**: Scale based on demand
-- **Resource Optimization**: Right-size containers
-- **Monitoring**: Track and optimize costs
-- **Docker Optimization**: Smaller images, efficient layers
+See [docs/FEATURES.md](docs/FEATURES.md) for comprehensive feature documentation.
 
 ## 🚀 Deployment Target
 
@@ -630,77 +332,6 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/ARCHITECTURE_DIAGRAM.
 - **Networking**: VPC with public/private subnets
 - **Monitoring**: CloudWatch integration
 - **Versioning**: Automated version management
-
-## 📚 Documentation
-
-- **[SETUP.md](docs/SETUP.md)**: Detailed setup guide
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)**: Architecture documentation
-- **[OPTIMIZATION.md](docs/OPTIMIZATION.md)**: Optimization strategies
-- **[DEMO_CONCEPTS.md](docs/DEMO_CONCEPTS.md)**: Demo concepts documentation
-- **[DOCKER_BEST_PRACTICES.md](docs/DOCKER_BEST_PRACTICES.md)**: Docker best practices
-- **[VERSIONING_STRATEGY.md](docs/VERSIONING_STRATEGY.md)**: Versioning strategy
-- **[ANSWERS.md](docs/ANSWERS.md)**: Assignment answers
-- **[QUICK_START.md](QUICK_START.md)**: Quick start guide
-- **[code-quality/README.md](code-quality/README.md)**: Code quality module
-
-## 🔄 Versioning Strategy
-
-### Semantic Versioning (Major.Minor.Patch)
-- **Major**: Breaking changes
-- **Minor**: New features, backward compatible
-- **Patch**: Bug fixes, backward compatible
-
-### Implementation
-- **Application Version**: Environment variables in Flask app
-- **Docker Image Tags**: Version-based tagging in ECR
-- **ECS Service**: Automatic deployment with new image versions
-- **GitHub Actions**: Automated version bumping and tagging
-- **Git Tags**: Release tracking and version history
-
-## 🧪 Testing
-
-### Test Strategy
-- **Unit Tests**: Pytest with coverage reporting
-- **Integration Tests**: End-to-end API testing
-- **Security Tests**: Vulnerability scanning
-- **Quality Tests**: Linting and formatting checks
-- **Docker Tests**: Container build and runtime testing
-- **Version Tests**: Version management and validation
-
-### Test Coverage
-- **Minimum Threshold**: 80%
-- **Coverage Reports**: HTML reports in CI/CD
-- **Quality Gates**: Block deployment if below threshold
-
-## 🚨 Troubleshooting
-
-### Common Issues
-1. **AWS Credentials**: Ensure AWS CLI is configured
-2. **Terraform State**: Check state file and backend configuration
-3. **Docker Build**: Verify Dockerfile and dependencies
-4. **Quality Checks**: Run local quality checks before pushing
-5. **Version Conflicts**: Check VERSION file and git tags
-
-### Debug Commands
-```bash
-# Check AWS credentials
-aws sts get-caller-identity
-
-# Validate Terraform
-terraform validate
-
-# Test Docker build
-docker build -f docker/Dockerfile -t devops-cicd-demo:latest .
-
-# Test Docker image
-docker run --rm -p 5000:5000 devops-cicd-demo:latest
-
-# Run quality checks
-bash code-quality/scripts/run-quality-checks.sh
-
-# Check version
-./scripts/version.sh info
-```
 
 ## 🤝 Contributing
 

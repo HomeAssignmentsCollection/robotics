@@ -1,8 +1,8 @@
 # Infrastructure Verification Guide
 
-## 🏗️ Созданные AWS Ресурсы
+## 🏗️ Created AWS Resources
 
-### ✅ VPC и Networking
+### ✅ VPC and Networking
 - **VPC ID**: `vpc-0de56a243be2e38d7`
 - **CIDR**: `10.0.0.0/16`
 - **Public Subnets**: 
@@ -11,18 +11,18 @@
 - **Private Subnets**:
   - `subnet-0aa5e16778f6a2b17` (eu-north-1a)
   - `subnet-0b8a5267d57f3e7a9` (eu-north-1b)
-- **Internet Gateway**: ✅ Создан
-- **NAT Gateway**: ✅ Создан с EIP
+- **Internet Gateway**: ✅ Created
+- **NAT Gateway**: ✅ Created with EIP
 
 ### ✅ Container Registry
 - **ECR Repository**: `devops-cicd-demo`
 - **Repository URL**: `485701710361.dkr.ecr.eu-north-1.amazonaws.com/devops-cicd-demo`
-- **Lifecycle Policy**: ✅ Настроен (30 последних образов)
+- **Lifecycle Policy**: ✅ Configured (30 latest images)
 
 ### ✅ Load Balancer
 - **ALB Name**: `production-devops-cicd-demo-alb`
 - **Target Group**: `production-devops-cicd-demo-tg`
-- **Security Group**: ✅ Настроен (порты 80, 443)
+- **Security Group**: ✅ Configured (ports 80, 443)
 
 ### ✅ Container Orchestration
 - **ECS Cluster**: `production-devops-cicd-demo-cluster`
@@ -41,13 +41,13 @@
 - **ECS Execution Role**: `production-devops-cicd-demo-ecs-execution-role`
 - **ECS Task Role**: `production-devops-cicd-demo-ecs-task-role`
 
-## 🔍 Где Проверить Ресурсы
+## 🔍 Where to Check Resources
 
-### 1. AWS Console - Основные Сервисы
+### 1. AWS Console - Main Services
 
 #### VPC Console
 - **URL**: https://eu-north-1.console.aws.amazon.com/vpc/
-- **Проверить**:
+- **Check**:
   - VPC: `production-vpc`
   - Subnets: 4 subnets (2 public, 2 private)
   - Route Tables: 2 route tables
@@ -56,14 +56,14 @@
 
 #### ECR Console
 - **URL**: https://eu-north-1.console.aws.amazon.com/ecr/
-- **Проверить**:
+- **Check**:
   - Repository: `devops-cicd-demo`
   - Image scanning: Enabled
   - Lifecycle policy: 30 images
 
 #### ECS Console
 - **URL**: https://eu-north-1.console.aws.amazon.com/ecs/
-- **Проверить**:
+- **Check**:
   - Cluster: `production-devops-cicd-demo-cluster`
   - Service: `production-devops-cicd-demo-service`
   - Tasks: 2 running tasks
@@ -71,24 +71,24 @@
 
 #### ALB Console
 - **URL**: https://eu-north-1.console.aws.amazon.com/ec2/v2/home?region=eu-north-1#LoadBalancer:
-- **Проверить**:
+- **Check**:
   - Load Balancer: `production-devops-cicd-demo-alb`
   - Target Group: `production-devops-cicd-demo-tg`
   - Health checks: `/health`
 
 #### CloudWatch Console
 - **URL**: https://eu-north-1.console.aws.amazon.com/cloudwatch/
-- **Проверить**:
+- **Check**:
   - Dashboard: `production-devops-cicd-demo-dashboard`
   - Alarms: CPU and Memory alarms
   - Logs: `/ecs/production-devops-cicd-demo`
 
-### 2. Где Увидеть Hello World
+### 2. Where to See Hello World
 
-#### 🎯 Основной Endpoint
-После деплоя приложения через CI/CD pipeline:
+#### 🎯 Main Endpoint
+After deploying the application through CI/CD pipeline:
 
-1. **Получить ALB DNS Name**:
+1. **Get ALB DNS Name**:
    ```bash
    aws elbv2 describe-load-balancers \
      --region eu-north-1 \
@@ -96,7 +96,7 @@
      --output text
    ```
 
-2. **Доступ к приложению**:
+2. **Access the application**:
    - **Main Page**: `http://[ALB-DNS-NAME]/`
    - **Health Check**: `http://[ALB-DNS-NAME]/health`
    - **Info Page**: `http://[ALB-DNS-NAME]/info`
@@ -105,18 +105,18 @@
 - **Repository**: `485701710361.dkr.ecr.eu-north-1.amazonaws.com/devops-cicd-demo`
 - **Tags**: `latest`, `v1.0.0`, etc.
 
-### 3. Архитектура Private Network
+### 3. Private Network Architecture
 
 #### 🔒 Private Subnets
-- **ECS Tasks**: Запущены в private subnets
+- **ECS Tasks**: Running in private subnets
 - **No Public IP**: `assign_public_ip = false`
-- **NAT Gateway**: Для исходящего интернет-доступа
-- **Security Groups**: Только от ALB к ECS
+- **NAT Gateway**: For outbound internet access
+- **Security Groups**: Only from ALB to ECS
 
 #### 🌐 Public Subnets
-- **ALB**: В public subnets
-- **NAT Gateway**: В public subnet
-- **Internet Gateway**: Для внешнего доступа
+- **ALB**: In public subnets
+- **NAT Gateway**: In public subnet
+- **Internet Gateway**: For external access
 
 ### 4. CI/CD Pipeline
 
@@ -131,7 +131,7 @@
 3. **Push**: Push to ECR
 4. **Deploy**: Update ECS service
 
-### 5. Мониторинг
+### 5. Monitoring
 
 #### CloudWatch Dashboard
 - **URL**: https://eu-north-1.console.aws.amazon.com/cloudwatch/home?region=eu-north-1#dashboards:name=production-devops-cicd-demo-dashboard
@@ -143,44 +143,44 @@
 - **CPU High**: >80% for 2 periods
 - **Memory High**: >80% for 2 periods
 
-## 🚀 Следующие Шаги
+## 🚀 Next Steps
 
-### 1. Запустить CI/CD Pipeline
+### 1. Start CI/CD Pipeline
 ```bash
-# Сделать изменения в коде
+# Make changes to code
 git add .
 git commit -m "feat: update application"
 git push origin main
 ```
 
-### 2. Проверить Pipeline
+### 2. Check Pipeline
 - **GitHub Actions**: https://github.com/HomeAssignmentsCollection/robotics/actions
-- **ECR**: Новый image tag
-- **ECS**: Обновленный service
+- **ECR**: New image tag
+- **ECS**: Updated service
 
-### 3. Проверить Приложение
-- **ALB DNS**: Получить из AWS Console
+### 3. Check Application
+- **ALB DNS**: Get from AWS Console
 - **Health Check**: `/health` endpoint
 - **Main Page**: `/` endpoint
 
-## 📊 Ожидаемые Результаты
+## 📊 Expected Results
 
 ### ✅ Infrastructure
-- **VPC**: Изолированная сеть
-- **Private Subnets**: ECS tasks в private сети
-- **Public Subnets**: ALB в public сети
-- **Security**: Правильные security groups
+- **VPC**: Isolated network
+- **Private Subnets**: ECS tasks in private network
+- **Public Subnets**: ALB in public network
+- **Security**: Correct security groups
 
 ### ✅ Application
-- **Hello World**: Отображается на главной странице
-- **Health Check**: Возвращает 200 OK
-- **Info Page**: Версия и информация о приложении
+- **Hello World**: Displayed on main page
+- **Health Check**: Returns 200 OK
+- **Info Page**: Version and application information
 
 ### ✅ CI/CD
 - **Automated Build**: Docker image building
 - **Automated Deploy**: ECS service update
 - **Versioning**: Semantic versioning
-- **Rollback**: Возможность отката
+- **Rollback**: Rollback capability
 
 ---
 

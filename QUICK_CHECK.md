@@ -1,6 +1,6 @@
 # 🚀 Quick Infrastructure Check
 
-## ✅ Созданные Ресурсы
+## ✅ Created Resources
 
 ### 🏗️ Infrastructure Status
 - **VPC**: ✅ `vpc-0de56a243be2e38d7` (10.0.0.0/16)
@@ -11,7 +11,7 @@
 - **ALB**: ✅ `production-devops-cicd-demo-alb`
 - **CloudWatch**: ✅ Dashboard + Alarms
 
-## 🔍 Где Проверить
+## 🔍 Where to Check
 
 ### 1. AWS Console Links
 - **VPC**: https://eu-north-1.console.aws.amazon.com/vpc/
@@ -24,10 +24,10 @@
 - **URL**: https://github.com/HomeAssignmentsCollection/robotics
 - **Actions**: https://github.com/HomeAssignmentsCollection/robotics/actions
 
-## 🎯 Где Увидеть Hello World
+## 🎯 Where to See Hello World
 
-### После CI/CD Pipeline:
-1. **Получить ALB DNS**:
+### After CI/CD Pipeline:
+1. **Get ALB DNS**:
    ```bash
    aws elbv2 describe-load-balancers \
      --region eu-north-1 \
@@ -35,27 +35,27 @@
      --output text
    ```
 
-2. **Доступ к приложению**:
+2. **Access the application**:
    - **Main**: `http://[ALB-DNS]/`
    - **Health**: `http://[ALB-DNS]/health`
    - **Info**: `http://[ALB-DNS]/info`
 
-## 🚀 Следующие Шаги
+## 🚀 Next Steps
 
-### 1. Запустить CI/CD
+### 1. Start CI/CD
 ```bash
 git add .
 git commit -m "feat: deploy application"
 git push origin main
 ```
 
-### 2. Проверить Pipeline
+### 2. Check Pipeline
 - GitHub Actions: https://github.com/HomeAssignmentsCollection/robotics/actions
-- ECR: Новый image
-- ECS: Обновленный service
+- ECR: New image
+- ECS: Updated service
 
-### 3. Проверить Приложение
-- ALB DNS из AWS Console
+### 3. Check Application
+- ALB DNS from AWS Console
 - Health check: `/health`
 - Main page: `/`
 

@@ -112,7 +112,7 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Build and push Docker image
+      - name: Build Docker image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           VERSION: ${{ needs.version-management.outputs.version }}
@@ -135,22 +135,86 @@ jobs:
             --label "org.opencontainers.image.version=$VERSION" \
             --label "org.opencontainers.image.revision=$GIT_COMMIT" \
             --label "org.opencontainers.image.created=$BUILD_DATE" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.title=DevOps CI/CD Demo" \
+            --label "org.opencontainers.image.description=DevOps CI/CD pipeline demonstration" \
             -t devops-cicd-demo:$VERSION .
           
-          # Tag for ECR
+          echo "✅ Docker image built successfully"
+          echo "  Image: devops-cicd-demo:$VERSION"
+      
+      - name: Simulate Docker Image Signing
+        env:
+          VERSION: ${{ needs.version-management.outputs.version }}
+          GIT_COMMIT: ${{ needs.version-management.outputs.git-commit }}
+        run: |
+          echo "🔐 STEP: Simulate Docker Image Signing"
+          echo "   🔑 Generating signing key..."
+          echo "   📝 Creating signature..."
+          echo "   🏷️ Image: devops-cicd-demo:$VERSION"
+          echo "   🔍 Signature: sha256:$(echo "devops-cicd-demo:$VERSION" | sha256sum | cut -d' ' -f1)"
+          echo "   📋 Certificate: CN=Demo Signing Authority, O=DevOps Demo, C=US"
+          echo "   📅 Valid Until: $(date -d '+1 year' -u +'%Y-%m-%dT%H:%M:%SZ')"
+          echo "   ✅ Image signed successfully"
+          
+          # Generate simulated signing metadata
+          SIGNATURE=$(echo "devops-cicd-demo:$VERSION" | sha256sum | cut -d' ' -f1)
+          CERTIFICATE="CN=Demo Signing Authority, O=DevOps Demo, C=US"
+          VALID_UNTIL=$(date -d '+1 year' -u +'%Y-%m-%dT%H:%M:%SZ')
+          
+          echo "📋 Signing Metadata:"
+          echo "  Image: devops-cicd-demo:$VERSION"
+          echo "  Signature: $SIGNATURE"
+          echo "  Certificate: $CERTIFICATE"
+          echo "  Valid Until: $VALID_UNTIL"
+          echo "  Git Commit: $GIT_COMMIT"
+      
+      - name: Tag and Push to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VERSION: ${{ needs.version-management.outputs.version }}
+          GIT_COMMIT: ${{ needs.version-management.outputs.git-commit }}
+          GIT_BRANCH: ${{ needs.version-management.outputs.git-branch }}
+        run: |
+          echo "📤 Pushing to ECR Repository..."
+          echo "  Registry: $ECR_REGISTRY"
+          echo "  Repository: $ECR_REPOSITORY"
+          
+          # Tag for ECR with multiple tags
           docker tag devops-cicd-demo:$VERSION $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION
           docker tag devops-cicd-demo:$VERSION $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker tag devops-cicd-demo:$VERSION $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_BRANCH
+          docker tag devops-cicd-demo:$VERSION $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_COMMIT
           
-          echo "📤 Pushing to ECR..."
+          echo "🏷️ Tagged images:"
+          echo "  $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION"
+          echo "  $ECR_REGISTRY/$ECR_REPOSITORY:latest"
+          echo "  $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_BRANCH"
+          echo "  $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_COMMIT"
+          
+          # Push all tags
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_BRANCH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_COMMIT
           
-          echo "✅ Docker image built and pushed successfully"
-          echo "  Image: $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION"
-          echo "  Latest: $ECR_REGISTRY/$ECR_REPOSITORY:latest"
-          echo "  Branch: $ECR_REGISTRY/$ECR_REPOSITORY:$GIT_BRANCH"
+          echo "✅ All images pushed successfully to ECR"
+      
+      - name: Verify ECR Push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VERSION: ${{ needs.version-management.outputs.version }}
+        run: |
+          echo "🔍 Verifying ECR push..."
+          
+          # List images in ECR repository
+          aws ecr describe-images \
+            --repository-name $ECR_REPOSITORY \
+            --region $AWS_REGION \
+            --query 'imageDetails[?contains(imageTags, `'$VERSION'`)].{Tag: imageTags, PushedAt: imagePushedAt, Size: imageSizeInBytes}' \
+            --output table
+          
+          echo "✅ ECR push verification completed"
 
   deploy:
     runs-on: ubuntu-latest
@@ -168,18 +232,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
       
-      - name: Setup Terraform
-        run: |
-          wget -O- -nv https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
-          apt update && apt install terraform
-      
       - name: Deploy to ECS
         env:
           VERSION: ${{ needs.version-management.outputs.version }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           echo "🚀 Deploying version $VERSION to ECS..."
+          echo "  Cluster: production-devops-cicd-demo-cluster"
+          echo "  Service: production-devops-cicd-demo-service"
+          echo "  Image: $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION"
           
           # Update ECS service with new image
           aws ecs update-service \
@@ -196,6 +257,14 @@ jobs:
             --services production-devops-cicd-demo-service
           
           echo "✅ Deployment completed successfully"
+          
+          # Verify deployment
+          echo "🔍 Verifying deployment..."
+          aws ecs describe-services \
+            --cluster production-devops-cicd-demo-cluster \
+            --services production-devops-cicd-demo-service \
+            --query 'services[0].{Status: status, RunningCount: runningCount, DesiredCount: desiredCount, UpdatedAt: updatedAt}' \
+            --output table
 
   notify-deployment:
     runs-on: ubuntu-latest
@@ -207,16 +276,29 @@ jobs:
         env:
           VERSION: ${{ needs.version-management.outputs.version }}
           GIT_COMMIT: ${{ needs.version-management.outputs.git-commit }}
+          BUILD_METADATA: ${{ needs.version-management.outputs.build-metadata }}
         run: |
           echo "🎉 Deployment Summary"
           echo "===================="
           echo "Version: $VERSION"
+          echo "Build Metadata: $BUILD_METADATA"
           echo "Git Commit: $GIT_COMMIT"
           echo "Environment: Production"
           echo "Status: ✅ Successfully deployed"
           echo ""
-          echo "Application URL:"
-          echo "http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/"
+          echo "📊 Deployment Details:"
+          echo "  - Docker Image: devops-cicd-demo:$VERSION"
+          echo "  - ECR Repository: $ECR_REPOSITORY"
+          echo "  - ECS Cluster: production-devops-cicd-demo-cluster"
+          echo "  - ECS Service: production-devops-cicd-demo-service"
           echo ""
-          echo "Health Check:"
-          echo "http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/health" 
+          echo "🌐 Application URLs:"
+          echo "  Main: http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/"
+          echo "  Health: http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/health"
+          echo "  Info: http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/info"
+          echo ""
+          echo "🔐 Security Features:"
+          echo "  - Docker image signed (simulated)"
+          echo "  - Version-based tagging"
+          echo "  - Git commit tracking"
+          echo "  - Build metadata included" 

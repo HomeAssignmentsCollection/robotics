@@ -1,8 +1,8 @@
 # 🎉 Infrastructure Successfully Created!
 
-## ✅ Полная Инфраструктура Создана
+## ✅ Complete Infrastructure Created
 
-### 🏗️ **VPC и Networking**
+### 🏗️ **VPC and Networking**
 - **VPC ID**: `vpc-051df37f1ea93eb95`
 - **CIDR**: `10.0.0.0/16`
 - **Private Subnets**: 
@@ -11,8 +11,8 @@
 - **Public Subnets**:
   - `subnet-0bebab58d5f9fcab4` (eu-north-1a)
   - `subnet-01809c1132eb94e80` (eu-north-1b)
-- **Internet Gateway**: ✅ Создан
-- **NAT Gateway**: ✅ Создан с EIP
+- **Internet Gateway**: ✅ Created
+- **NAT Gateway**: ✅ Created with EIP
 
 ### 🐳 **Container Infrastructure**
 - **ECR Repository**: `devops-cicd-demo`
@@ -36,7 +36,7 @@
 - **ECS Execution Role**: `production-devops-cicd-demo-ecs-execution-role`
 - **ECS Task Role**: `production-devops-cicd-demo-ecs-task-role`
 
-## 🔍 **Где Проверить Ресурсы**
+## 🔍 **Where to Check Resources**
 
 ### **AWS Console Links:**
 - **VPC**: https://eu-north-1.console.aws.amazon.com/vpc/
@@ -45,82 +45,82 @@
 - **ALB**: https://eu-north-1.console.aws.amazon.com/ec2/v2/home?region=eu-north-1#LoadBalancer:
 - **CloudWatch**: https://eu-north-1.console.aws.amazon.com/cloudwatch/
 
-## 🎯 **Где Увидеть Hello World**
+## 🎯 **Where to See Hello World**
 
-### **Доступ к приложению:**
+### **Access the application:**
 - **Main Page**: `http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/`
 - **Health Check**: `http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/health`
 - **Info Page**: `http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/info`
 
-## 🏗️ **Архитектура Private Network**
+## 🏗️ **Private Network Architecture**
 
-### ✅ **Реализовано:**
-- **VPC**: Изолированная сеть `10.0.0.0/16`
-- **Private Subnets**: ECS tasks в private subnets
-- **Public Subnets**: ALB и NAT Gateway в public subnets
-- **NAT Gateway**: Для исходящего интернет-доступа
-- **Security Groups**: Правильно настроены
+### ✅ **Implemented:**
+- **VPC**: Isolated network `10.0.0.0/16`
+- **Private Subnets**: ECS tasks in private subnets
+- **Public Subnets**: ALB and NAT Gateway in public subnets
+- **NAT Gateway**: For outbound internet access
+- **Security Groups**: Properly configured
 
 ### 🔒 **Security:**
-- **ECS Tasks**: В private subnets без public IP
-- **ALB**: В public subnets для внешнего доступа
-- **Communication**: Только ALB → ECS
+- **ECS Tasks**: In private subnets without public IP
+- **ALB**: In public subnets for external access
+- **Communication**: Only ALB → ECS
 
-## 🚀 **Следующие Шаги**
+## 🚀 **Next Steps**
 
-### 1. **Запустить CI/CD Pipeline**
+### 1. **Start CI/CD Pipeline**
 ```bash
-# Сделать изменения в коде
+# Make changes to code
 git add .
 git commit -m "feat: deploy application"
 git push origin main
 ```
 
-### 2. **Проверить Pipeline**
+### 2. **Check Pipeline**
 - **GitHub Actions**: https://github.com/HomeAssignmentsCollection/robotics/actions
-- **ECR**: Новый image tag
-- **ECS**: Обновленный service
+- **ECR**: New image tag
+- **ECS**: Updated service
 
-### 3. **Проверить Приложение**
+### 3. **Check Application**
 - **ALB DNS**: `production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com`
 - **Health Check**: `/health` endpoint
 - **Main Page**: `/` endpoint
 
-## 📊 **Ожидаемые Результаты**
+## 📊 **Expected Results**
 
 ### ✅ **Infrastructure:**
-- **VPC**: Изолированная сеть
-- **Private Subnets**: ECS tasks в private сети
-- **Public Subnets**: ALB в public сети
-- **Security**: Правильные security groups
+- **VPC**: Isolated network
+- **Private Subnets**: ECS tasks in private network
+- **Public Subnets**: ALB in public network
+- **Security**: Correct security groups
 
 ### ✅ **Application:**
-- **Hello World**: Отображается на главной странице
-- **Health Check**: Возвращает 200 OK
-- **Info Page**: Версия и информация о приложении
+- **Hello World**: Displayed on main page
+- **Health Check**: Returns 200 OK
+- **Info Page**: Version and application information
 
 ### ✅ **CI/CD:**
 - **Automated Build**: Docker image building
 - **Automated Deploy**: ECS service update
 - **Versioning**: Semantic versioning
-- **Rollback**: Возможность отката
+- **Rollback**: Rollback capability
 
-## 🔧 **Команды для Проверки**
+## 🔧 **Commands for Verification**
 
 ### **AWS CLI Commands:**
 ```bash
-# Проверить ECS Service
+# Check ECS Service
 aws ecs describe-services \
   --cluster production-devops-cicd-demo-cluster \
   --services production-devops-cicd-demo-service \
   --region eu-north-1
 
-# Проверить ALB
+# Check ALB
 aws elbv2 describe-load-balancers \
   --region eu-north-1 \
   --query 'LoadBalancers[?LoadBalancerName==`production-devops-cicd-demo-alb`]'
 
-# Проверить ECR
+# Check ECR
 aws ecr describe-repositories \
   --region eu-north-1 \
   --repository-names devops-cicd-demo

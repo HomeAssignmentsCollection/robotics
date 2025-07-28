@@ -1,135 +1,135 @@
-# 🤖 Автоматическое Версионирование
+# 🤖 Automatic Versioning
 
-## 📋 Обзор
+## 📋 Overview
 
-В проекте настроено автоматическое версионирование через GitHub Actions. Есть несколько способов управления версиями:
+The project has automatic versioning configured through GitHub Actions. There are several ways to manage versions:
 
-## 🚀 Способы изменения версии
+## 🚀 Ways to Change Version
 
-### 1. **Автоматическое (при каждом push в main)**
+### 1. **Automatic (on every push to main)**
 
 **Workflow:** `.github/workflows/auto-version.yml`
 
-**Как работает:**
-- При каждом push в ветку `main` автоматически увеличивается patch версия
-- Исключения: изменения в файле `VERSION` и самом workflow
-- Создается Git тег и GitHub Release
-- Запускается основной CI/CD pipeline
+**How it works:**
+- On every push to the `main` branch, the patch version is automatically incremented
+- Exceptions: changes to the `VERSION` file and the workflow itself
+- Creates a Git tag and GitHub Release
+- Triggers the main CI/CD pipeline
 
-**Пример:**
+**Example:**
 ```bash
-# Текущая версия: 1.0.2
+# Current version: 1.0.2
 git push origin main
-# Результат: версия автоматически станет 1.0.3
+# Result: version will automatically become 1.0.3
 ```
 
-### 2. **Ручное через GitHub Actions**
+### 2. **Manual through GitHub Actions**
 
 **Workflow:** `.github/workflows/manual-version.yml`
 
-**Как использовать:**
-1. Перейти в GitHub → Actions
-2. Выбрать "Manual Version Management"
-3. Нажать "Run workflow"
-4. Выбрать тип версии:
+**How to use:**
+1. Go to GitHub → Actions
+2. Select "Manual Version Management"
+3. Click "Run workflow"
+4. Choose version type:
    - `patch` - 1.0.2 → 1.0.3
    - `minor` - 1.0.2 → 1.1.0
    - `major` - 1.0.2 → 2.0.0
-5. Опционально указать кастомную версию
+5. Optionally specify a custom version
 
-### 3. **Локальное управление**
+### 3. **Local Management**
 
-**Скрипт:** `scripts/version.sh`
+**Script:** `scripts/version.sh`
 
 ```bash
-# Показать текущую версию
+# Show current version
 ./scripts/version.sh get
 
-# Увеличить patch версию
+# Increment patch version
 ./scripts/version.sh bump patch
 
-# Увеличить minor версию
+# Increment minor version
 ./scripts/version.sh bump minor
 
-# Увеличить major версию
+# Increment major version
 ./scripts/version.sh bump major
 
-# Создать релиз
+# Create release
 ./scripts/version.sh release
 ```
 
-## 🔄 Процесс автоматического версионирования
+## 🔄 Automatic Versioning Process
 
-### Шаг 1: Auto Version Workflow
+### Step 1: Auto Version Workflow
 ```yaml
 # .github/workflows/auto-version.yml
 on:
   push:
     branches: [ main ]
     paths-ignore:
-      - 'VERSION'  # Исключаем изменения в VERSION
+      - 'VERSION'  # Exclude changes to VERSION
 ```
 
-### Шаг 2: Увеличение версии
+### Step 2: Version Increment
 ```bash
-# Получить текущую версию
+# Get current version
 CURRENT_VERSION=$(./scripts/version.sh get)
 
-# Увеличить patch версию
+# Increment patch version
 NEW_VERSION=$(./scripts/version.sh bump patch)
 
-# Закоммитить изменения
+# Commit changes
 git add VERSION
 git commit -m "chore: auto bump version to $NEW_VERSION [skip ci]"
 git push origin main
 ```
 
-### Шаг 3: Создание тега и релиза
+### Step 3: Create Tag and Release
 ```bash
-# Создать Git тег
+# Create Git tag
 git tag -a "v$VERSION" -m "Auto release version $VERSION"
 git push origin "v$VERSION"
 
-# Создать GitHub Release
-# (автоматически через actions/create-release@v1)
+# Create GitHub Release
+# (automatically through actions/create-release@v1)
 ```
 
-### Шаг 4: Основной CI/CD Pipeline
+### Step 4: Main CI/CD Pipeline
 ```yaml
 # .github/workflows/ci-cd.yml
-# Запускается после изменения версии
+# Runs after version change
 jobs:
-  - version-management  # Читает новую версию
-  - test               # Тестирование
-  - build-and-push     # Сборка и загрузка в ECR
-  - deploy             # Развертывание в ECS
-  - notify-deployment  # Уведомление о завершении
+  - version-management  # Reads new version
+  - test               # Testing
+  - build-and-push     # Build and upload to ECR
+  - deploy             # Deploy to ECS
+  - notify-deployment  # Completion notification
 ```
 
-## 📊 Структура версий
+## 📊 Version Structure
 
-### Семантическое версионирование
+### Semantic Versioning
 ```
 MAJOR.MINOR.PATCH
    1  .  0  .  2
 ```
 
-- **MAJOR** - несовместимые изменения API
-- **MINOR** - новая функциональность (обратная совместимость)
-- **PATCH** - исправления багов (обратная совместимость)
+- **MAJOR** - incompatible API changes
+- **MINOR** - new functionality (backward compatible)
+- **PATCH** - bug fixes (backward compatible)
 
-### Примеры
+### Examples
 ```bash
 1.0.2 → 1.0.3  # patch
 1.0.2 → 1.1.0  # minor
 1.0.2 → 2.0.0  # major
 ```
 
-## 🔧 Настройка
+## 🔧 Configuration
 
-### Переменные окружения
+### Environment Variables
 ```bash
-# В приложении
+# In application
 APP_VERSION = os.getenv('APP_VERSION', '1.0.2')
 BUILD_DATE = os.getenv('BUILD_DATE', datetime.datetime.now().isoformat())
 VCS_REF = os.getenv('VCS_REF', 'latest')
@@ -155,49 +155,49 @@ docker build -f docker/Dockerfile \
   -t devops-cicd-demo:$VERSION .
 ```
 
-## 🎯 Рекомендации
+## 🎯 Recommendations
 
-### Для разработки
-1. **Обычные изменения:** Просто push в main → автоматическое увеличение patch версии
-2. **Новые функции:** Использовать manual workflow → minor версия
-3. **Критические изменения:** Использовать manual workflow → major версия
+### For Development
+1. **Regular changes:** Just push to main → automatic patch version increment
+2. **New features:** Use manual workflow → minor version
+3. **Critical changes:** Use manual workflow → major version
 
-### Для релизов
-1. **Автоматические:** Каждый push в main создает новый релиз
-2. **Ручные:** Использовать manual workflow для контроля
-3. **Кастомные:** Указать точную версию в manual workflow
+### For Releases
+1. **Automatic:** Every push to main creates a new release
+2. **Manual:** Use manual workflow for control
+3. **Custom:** Specify exact version in manual workflow
 
-## 🔍 Мониторинг
+## 🔍 Monitoring
 
-### Проверка версии в приложении
+### Check Version in Application
 ```bash
 curl http://production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com/ | jq .
 ```
 
-### Проверка тегов
+### Check Tags
 ```bash
 git tag -l
 git log --oneline --decorate
 ```
 
-### Проверка GitHub Releases
+### Check GitHub Releases
 - GitHub → Releases
-- Автоматически создаются при каждом изменении версии
+- Automatically created on each version change
 
-## 🚨 Исключения
+## 🚨 Exceptions
 
-### Что НЕ запускает auto-version:
-- Изменения в файле `VERSION`
-- Изменения в `.github/workflows/auto-version.yml`
-- Push в другие ветки (не main)
+### What Does NOT Trigger Auto-Version:
+- Changes to the `VERSION` file
+- Changes to `.github/workflows/auto-version.yml`
+- Push to other branches (not main)
 
-### Что запускает auto-version:
-- Любые изменения в коде
-- Изменения в документации
-- Изменения в конфигурации
-- Push в ветку main
+### What Triggers Auto-Version:
+- Any code changes
+- Documentation changes
+- Configuration changes
+- Push to main branch
 
-## 📝 Логи
+## 📝 Logs
 
 ### Auto Version Workflow
 ```
@@ -220,4 +220,4 @@ New version: 1.0.3
 
 ---
 
-**Автоматическое версионирование готово к использованию! 🚀** 
+**Automatic versioning ready to use! 🚀** 
