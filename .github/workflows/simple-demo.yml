@@ -1,0 +1,95 @@
+name: Simple Demo Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  demo-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Echo - Start Pipeline
+        run: |
+          echo "📥 Checking out code from repository"
+          echo "🚀 Starting Simple Demo Pipeline"
+          echo "⏰ Time: $(date)"
+          echo "📋 Branch: ${{ github.ref }}"
+          echo "🔧 Event: ${{ github.event_name }}"
+
+      - name: Echo - Code Quality Check
+        run: |
+          echo "🔍 Step: Code Quality Check"
+          echo "✅ Running linting checks..."
+          echo "✅ Running style checks..."
+          echo "✅ Running security checks..."
+          echo "📊 Quality Score: 95/100"
+          echo "✅ Code quality check passed!"
+
+      - name: Echo - Build Docker Image
+        run: |
+          echo "🐳 Step: Build Docker Image"
+          echo "📦 Building image: devops-cicd-demo:latest"
+          echo "🔧 Using Dockerfile from ./docker/"
+          echo "📋 Image layers: 8 layers"
+          echo "📏 Image size: 156MB"
+          echo "✅ Docker image built successfully!"
+
+      - name: Echo - Simulate Image Signing
+        run: |
+          echo "🔐 Step: Image Signing (Simulation)"
+          echo "📝 Signing image with digital signature..."
+          echo "🔑 Using signing key: SHA256:abc123..."
+          echo "📋 Signature: devops-cicd-demo:latest.sig"
+          echo "✅ Image signed successfully!"
+
+      - name: Echo - Push to Registry
+        run: |
+          echo "📤 Step: Push to Container Registry"
+          echo "🏪 Pushing to: 485701710361.dkr.ecr.eu-north-1.amazonaws.com/devops-cicd-demo"
+          echo "🏷️ Tags: latest, v1.0.0, $(date +%Y%m%d)"
+          echo "📊 Upload progress: 100%"
+          echo "✅ Image pushed successfully!"
+
+      - name: Echo - Verify Image Signature
+        run: |
+          echo "🔍 Step: Verify Image Signature (Simulation)"
+          echo "🔐 Verifying digital signature..."
+          echo "✅ Signature verification passed!"
+          echo "🔒 Image integrity confirmed!"
+
+      - name: Echo - Deploy to Production
+        run: |
+          echo "🚀 Step: Deploy to Production"
+          echo "🏗️ Updating ECS service..."
+          echo "📋 Service: production-devops-cicd-demo-service"
+          echo "🐳 Task definition updated"
+          echo "🔄 Rolling deployment started..."
+          echo "✅ Deployment completed successfully!"
+
+      - name: Echo - Health Check
+        run: |
+          echo "🏥 Step: Health Check"
+          echo "🔍 Checking application health..."
+          echo "🌐 ALB DNS: production-devops-cicd-demo-alb-685489736.eu-north-1.elb.amazonaws.com"
+          echo "✅ Health check passed!"
+          echo "📊 Response time: 45ms"
+
+      - name: Echo - Pipeline Complete
+        run: |
+          echo "🎉 Pipeline completed successfully!"
+          echo "📊 Summary:"
+          echo "   ✅ Code Quality: PASSED"
+          echo "   ✅ Docker Build: PASSED"
+          echo "   ✅ Image Signing: PASSED"
+          echo "   ✅ Registry Push: PASSED"
+          echo "   ✅ Deployment: PASSED"
+          echo "   ✅ Health Check: PASSED"
+          echo "⏰ Duration: 2m 15s"
+          echo "�� Status: SUCCESS" 

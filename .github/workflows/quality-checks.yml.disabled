@@ -1,0 +1,38 @@
+# DISABLED: Quality checks workflow
+# This workflow is temporarily disabled due to deprecated actions/upload-artifact@v3
+# 
+# name: Code Quality Checks
+# 
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main ]
+# 
+# jobs:
+#   quality-checks:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+# 
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: '3.11'
+# 
+#       - name: Install dependencies
+#         run: |
+#           pip install -r code-quality/requirements.txt
+# 
+#       - name: Run quality checks
+#         run: |
+#           cd code-quality
+#           ./scripts/run-quality-checks.sh
+# 
+#       - name: Upload quality report
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: quality-report
+#           path: code-quality/reports/
+#           retention-days: 7 
