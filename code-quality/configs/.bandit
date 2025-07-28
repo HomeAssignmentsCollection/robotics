@@ -1,0 +1,19 @@
+exclude_dirs:
+  - tests
+  - docs
+  - code-quality/reports
+  - infrastructure
+
+skips:
+  - B101  # assert_used
+  - B601  # paramiko_calls
+  - B603  # subprocess_without_shell_equals_true
+  - B604  # any_other_function_with_shell_equals_true
+
+# Severity levels to include
+severity: medium
+confidence: medium
+
+# Output format
+output_format: json
+output_file: code-quality/reports/security/bandit-report.json 

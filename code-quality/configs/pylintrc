@@ -1,0 +1,37 @@
+[MASTER]
+disable=
+    C0114, # missing-module-docstring
+    C0115, # missing-class-docstring
+    C0116, # missing-function-docstring
+
+[MESSAGES CONTROL]
+disable=
+    C0103, # invalid-name
+    C0303, # trailing-whitespace
+    R0903, # too-few-public-methods
+    R0913, # too-many-arguments
+    R0914, # too-many-locals
+    R0915, # too-many-statements
+    W0621, # redefined-outer-name
+    W0622, # redefined-builtin
+    W0703, # broad-except
+    W0702, # bare-except
+
+[FORMAT]
+max-line-length=88
+
+[DESIGN]
+max-args=10
+max-locals=15
+max-returns=6
+max-statements=50
+max-branches=12
+max-parents=7
+max-attributes=7
+min-public-methods=0
+max-public-methods=20
+
+[REPORTS]
+output-format=text
+reports=no
+score=yes 
