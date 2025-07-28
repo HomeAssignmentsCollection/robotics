@@ -135,6 +135,7 @@ docker-compose.override.yml
 # AWS
 .aws/
 aws-credentials
+aws-credentials.txt
 *.pem
 
 # Terraform
