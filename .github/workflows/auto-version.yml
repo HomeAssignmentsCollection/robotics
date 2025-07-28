@@ -1,0 +1,80 @@
+name: Auto Version Management
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'VERSION'
+      - '.github/workflows/auto-version.yml'
+
+jobs:
+  auto-bump-version:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Setup version management
+        run: |
+          chmod +x scripts/version.sh
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: Auto bump patch version
+        id: bump
+        run: |
+          echo "🔄 Auto bumping patch version..."
+          
+          # Get current version
+          CURRENT_VERSION=$(./scripts/version.sh get)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Bump patch version
+          NEW_VERSION=$(./scripts/version.sh bump patch)
+          echo "New version: $NEW_VERSION"
+          
+          # Commit and push version change
+          git add VERSION
+          git commit -m "chore: auto bump version to $NEW_VERSION [skip ci]"
+          git push origin main
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Version bumped to $NEW_VERSION"
+      
+      - name: Create git tag
+        run: |
+          VERSION=$(./scripts/version.sh get)
+          echo "🏷️ Creating git tag v$VERSION..."
+          git tag -a "v$VERSION" -m "Auto release version $VERSION"
+          git push origin "v$VERSION"
+          echo "✅ Git tag v$VERSION created"
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          release_name: Auto Release v${{ steps.bump.outputs.version }}
+          body: |
+            ## Auto Release v${{ steps.bump.outputs.version }}
+            
+            🤖 This release was automatically created by CI/CD pipeline.
+            
+            ### Changes
+            - Automated version bump
+            - Git commit: ${{ github.sha }}
+            - Build date: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+            
+            ### Next Steps
+            The main CI/CD pipeline will now build and deploy this version.
+          draft: false
+          prerelease: false 

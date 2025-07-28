@@ -1,0 +1,102 @@
+name: Manual Version Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      custom_version:
+        description: 'Custom version (optional, overrides version_type)'
+        required: false
+        type: string
+
+jobs:
+  manual-bump-version:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Setup version management
+        run: |
+          chmod +x scripts/version.sh
+      
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+      
+      - name: Manual version bump
+        id: bump
+        run: |
+          echo "🔄 Manual version bump..."
+          
+          # Get current version
+          CURRENT_VERSION=$(./scripts/version.sh get)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Determine new version
+          if [ -n "${{ github.event.inputs.custom_version }}" ]; then
+            NEW_VERSION="${{ github.event.inputs.custom_version }}"
+            echo "Using custom version: $NEW_VERSION"
+            echo "$NEW_VERSION" > VERSION
+          else
+            VERSION_TYPE="${{ github.event.inputs.version_type }}"
+            echo "Bumping $VERSION_TYPE version..."
+            NEW_VERSION=$(./scripts/version.sh bump $VERSION_TYPE)
+          fi
+          
+          echo "New version: $NEW_VERSION"
+          
+          # Commit and push version change
+          git add VERSION
+          git commit -m "chore: manual bump version to $NEW_VERSION [skip ci]"
+          git push origin main
+          
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "✅ Version bumped to $NEW_VERSION"
+      
+      - name: Create git tag
+        run: |
+          VERSION=$(./scripts/version.sh get)
+          echo "🏷️ Creating git tag v$VERSION..."
+          git tag -a "v$VERSION" -m "Manual release version $VERSION"
+          git push origin "v$VERSION"
+          echo "✅ Git tag v$VERSION created"
+      
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          release_name: Manual Release v${{ steps.bump.outputs.version }}
+          body: |
+            ## Manual Release v${{ steps.bump.outputs.version }}
+            
+            👤 This release was manually created via GitHub Actions.
+            
+            ### Version Type
+            - Bump Type: ${{ github.event.inputs.version_type }}
+            - Custom Version: ${{ github.event.inputs.custom_version || 'Not specified' }}
+            
+            ### Changes
+            - Manual version bump
+            - Git commit: ${{ github.sha }}
+            - Build date: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+            
+            ### Next Steps
+            The main CI/CD pipeline will now build and deploy this version.
+          draft: false
+          prerelease: false 

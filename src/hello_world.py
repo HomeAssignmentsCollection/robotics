@@ -24,7 +24,8 @@ def hello_world():
         'build_date': BUILD_DATE,
         'vcs_ref': VCS_REF,
         'status': 'running',
-        'deployment': 'v1.0.2 - New Feature Added! 🚀'
+        'deployment': 'v1.0.2 - New Feature Added! 🚀',
+        'current_version_message': f'CURRENT VERSION IS: {APP_VERSION}'
     }
 
 @app.route('/health')
