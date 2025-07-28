@@ -1,53 +1,61 @@
 #!/usr/bin/env python3
 """
-Simple Flask application for CI/CD demo
+Hello World Flask Application
+A simple microservice for DevOps CI/CD demonstration
 """
 
 import os
-import json
-from datetime import datetime
-from flask import Flask, jsonify, request
+import datetime
+from flask import Flask, jsonify
 
 app = Flask(__name__)
 
-# Version information
-VERSION = os.getenv('APP_VERSION', '1.0.0')
-BUILD_DATE = os.getenv('BUILD_DATE', datetime.now().isoformat())
+# Get version and build info from environment variables
+APP_VERSION = os.getenv('APP_VERSION', '1.0.2')
+BUILD_DATE = os.getenv('BUILD_DATE', datetime.datetime.now().isoformat())
+VCS_REF = os.getenv('VCS_REF', 'latest')
 
 @app.route('/')
 def hello_world():
     """Main endpoint returning hello message"""
-    return jsonify({
+    return {
         'message': 'Hello from CI/CD!',
-        'version': VERSION,
+        'version': APP_VERSION,
         'build_date': BUILD_DATE,
-        'timestamp': datetime.now().isoformat()
-    })
+        'vcs_ref': VCS_REF,
+        'status': 'running',
+        'deployment': 'v1.0.2 - New Feature Added! 🚀'
+    }
 
 @app.route('/health')
 def health_check():
     """Health check endpoint"""
-    return jsonify({
+    return {
         'status': 'healthy',
-        'version': VERSION,
-        'timestamp': datetime.now().isoformat()
-    })
+        'timestamp': datetime.datetime.now().isoformat(),
+        'version': APP_VERSION,
+        'service': 'devops-cicd-demo'
+    }
 
 @app.route('/info')
-def app_info():
+def info():
     """Application information endpoint"""
-    return jsonify({
-        'name': 'devops-cicd-demo',
-        'version': VERSION,
+    return {
+        'application': 'devops-cicd-demo',
+        'version': APP_VERSION,
         'build_date': BUILD_DATE,
-        'environment': os.getenv('ENVIRONMENT', 'development'),
-        'host': request.host,
-        'user_agent': request.headers.get('User-Agent', 'Unknown')
-    })
+        'vcs_ref': VCS_REF,
+        'environment': os.getenv('ENVIRONMENT', 'production'),
+        'region': os.getenv('AWS_REGION', 'eu-north-1'),
+        'features': [
+            'Flask microservice',
+            'Docker containerization',
+            'AWS ECS deployment',
+            'CI/CD pipeline',
+            'Health monitoring',
+            'Version management'
+        ]
+    }
 
 if __name__ == '__main__':
-    port = int(os.getenv('PORT', 5000))
-    debug = os.getenv('FLASK_ENV') == 'development'
-    
-    print(f"Starting application version {VERSION} on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+    app.run(host='0.0.0.0', port=5000, debug=False) 
