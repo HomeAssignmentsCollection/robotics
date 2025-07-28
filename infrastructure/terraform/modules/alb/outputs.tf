@@ -21,4 +21,9 @@ output "alb_security_group_id" {
 output "alb_zone_id" {
   description = "ALB zone ID"
   value       = aws_lb.main.zone_id
+}
+
+output "listener_arn" {
+  description = "ALB listener ARN"
+  value       = aws_lb_listener.app.arn
 } 

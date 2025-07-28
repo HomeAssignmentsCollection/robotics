@@ -44,6 +44,7 @@ module "ecs" {
   health_check_path    = var.health_check_path
   target_group_arn     = module.alb.target_group_arn
   alb_security_group_id = module.alb.alb_security_group_id
+  alb_listener_arn     = module.alb.listener_arn
   depends_on           = [module.vpc, module.ecr, module.alb]
 }
 

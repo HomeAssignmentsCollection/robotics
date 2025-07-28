@@ -44,4 +44,9 @@ variable "health_check_path" {
   description = "Health check path"
   type        = string
   default     = "/health"
+}
+
+variable "alb_listener_arn" {
+  description = "ALB listener ARN"
+  type        = string
 } 
