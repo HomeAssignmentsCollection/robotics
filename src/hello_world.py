@@ -25,7 +25,8 @@ def hello_world():
         'vcs_ref': VCS_REF,
         'status': 'running',
         'deployment': 'v1.0.2 - New Feature Added! 🚀',
-        'current_version_message': f'CURRENT VERSION IS: {APP_VERSION}'
+        'current_version_message': f'CURRENT VERSION IS: {APP_VERSION}',
+        'auto_versioning': 'enabled'
     }
 
 @app.route('/health')
